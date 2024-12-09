@@ -1,6 +1,6 @@
 public class Potter {
     private String name;
-    private int energy;
+    private Integer energy;
     private int coins;
 
     // Constructor default
@@ -15,6 +15,10 @@ public class Potter {
         this.name = name;
         this.energy = energy;
         this.coins = coins;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void printStatus() {
@@ -37,5 +41,5 @@ public class Potter {
     }
 
     // Melihat energy
-    public int getEnergy() {return energy;}
+    public Integer getEnergy() {return energy;}
 }
