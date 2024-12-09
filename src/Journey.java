@@ -36,13 +36,13 @@ public class Journey {
 
             //Hapus mainQuestVisited jika mainQuest
             if (currentMilestone.getType() == "Main Quest"){
-                for (int i = 0; i < mainQuestVisited.length; i++) {
-                    if (mainQuestVisited[i]==null){
-                        break;
-                    }else if (mainQuestVisited[i].equals(currentMilestone.getId())) {
-                        mainQuestVisited[i] = null; // Ubah nilai menjadi null
-                        break; // Keluar dari loop setelah menemukan
-                    }
+                String currentMilestoneId = currentMilestone.getId();
+                switch (currentMilestoneId){
+                    case "mQ1" -> mainQuestVisited[0] = null;
+                    case "mQ2" -> mainQuestVisited[1] = null;
+                    case "mQ3" -> mainQuestVisited[2] = null;
+                    case "mQ4" -> mainQuestVisited[3] = null;
+                    case "mQ5" -> mainQuestVisited[4] = null;
                 }
             }
 
@@ -71,6 +71,7 @@ public class Journey {
             boolean validChoice = false;
             int choice = 1;
             boolean allVisited = Arrays.stream(mainQuestVisited).allMatch(Objects::isNull);
+            Milestone candidate = new Milestone("","");
             while (!validChoice) {
                 System.out.print("Choose your next milestone: ");
                 choice = scanner.nextInt();
@@ -81,8 +82,15 @@ public class Journey {
                     validChoice = false;
                     continue;
                 }
-                // Validasi apakah layak melanjutkan ke final
-                if (optionMilestone.get(choice-1).getType() == "Final"){
+                candidate = optionMilestone.get(choice-1);
+                // Validasi apakah final tersebut merupakan final yang sudah dipilih raja atau bukan
+                if (candidate.getType() == "Final"){
+                    if (!candidate.getName().equals(monster.getName())){
+                        System.out.println("This is not our destination, let's go back!");
+                        candidate = currentMilestone; // untuk membuat nextMilestone tetap di currentMilestone
+                        break;
+                    }
+                    // Validasi apakah layak melanjutkan ke final
                     if (allVisited){
                         System.out.println("You have collected all the God Weapons. " +
                                 "You are worthy to fight the Gatekeeper. " +
@@ -90,7 +98,7 @@ public class Journey {
                         validChoice = true;
                     }else {
                         System.out.println("You haven't gotten all the God Weapons yet");
-                        System.out.println("Find and get the following God weapons :");
+                        System.out.println("Find and get the following God Weapons :");
                         for (int i = 0; i < mainQuestVisited.length; i++) {
                             if (mainQuestVisited[i] != null) {
                                 System.out.println(mainQuestVisited[i]);
@@ -108,7 +116,7 @@ public class Journey {
                 break;
             }
             // Perbarui milestone berikutnya
-            nextMilestone = optionMilestone.get(choice - 1);
+            nextMilestone = candidate;
 
             // Update Potter's Energy ke nextMilestone
             potter.decreaseEnergy(currentMilestone.getEnergyCosts(nextMilestone));
@@ -224,7 +232,6 @@ public class Journey {
         start3.addConnection(mQ5, 13);
         start3.addConnection(sQ9, 8);
 
-        mQ1.addConnection(start1, 10);
         mQ1.addConnection(sQ1, 8);
         mQ1.addConnection(mQ2, 17);
 
@@ -246,8 +253,6 @@ public class Journey {
         mQ4.addConnection(sQ12, 10);
         mQ4.addConnection(f3, 17);
 
-        mQ5.addConnection(start2, 20);
-        mQ5.addConnection(start3, 13);
         mQ5.addConnection(sQ3, 4);
         mQ5.addConnection(sQ4, 14);
         mQ5.addConnection(sQ9, 10);
@@ -259,11 +264,8 @@ public class Journey {
         sQ1.addConnection(sQ11, 10);
         sQ1.addConnection(sQ15, 14);
 
-        sQ2.addConnection(start1, 17);
-        sQ2.addConnection(start2, 8);
         sQ2.addConnection(mQ2, 12);
 
-        sQ3.addConnection(start2, 14);
         sQ3.addConnection(mQ2, 8);
         sQ3.addConnection(mQ5, 4);
         sQ3.addConnection(sQ5, 20);
@@ -288,11 +290,9 @@ public class Journey {
         sQ7.addConnection(f2, 13);
         sQ7.addConnection(f3, 15);
 
-        sQ8.addConnection(start1, 15);
         sQ8.addConnection(sQ1, 20);
         sQ8.addConnection(sQ15, 8);
 
-        sQ9.addConnection(start3, 8);
         sQ9.addConnection(mQ5, 10);
         sQ9.addConnection(sQ13, 12);
 
