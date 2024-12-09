@@ -3,10 +3,10 @@ public class Monster {
     private int requiredEnergy; // Energy yang dibutuhkan untuk mengalahkan monster
     private BinarySearchTree bst;
     private int value; // Nilai monster
+    private String descripton;
 
-    public Monster(String name, int requiredEnergy) {
-        this.name = name;
-        this.requiredEnergy = requiredEnergy;
+    public Monster() {
+        this.requiredEnergy = 60;
         this.bst = new BinarySearchTree();  // Inisialisasi Binary Search Tree
     }
 
@@ -14,6 +14,8 @@ public class Monster {
     public String getName() {
         return name;
     }
+
+    public String getDescripton() {return descripton;}
 
     // Getter untuk nilai monster
     public int getValue() {
@@ -27,4 +29,9 @@ public class Monster {
         bst.insert(value);
     }
 
+    //Mengisi nama monster
+    public void setName(String name) {this.name = name;}
+
+    //Mengisi deskripsi monster
+    public void setDescripton(String descripton) {this.descripton = descripton;}
 }
