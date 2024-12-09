@@ -6,7 +6,7 @@ public class Potter {
     // Constructor default
     public Potter() {
         this.name = "Potter";
-        this.energy = 250; // Nilai default energi
+        this.energy = 1000; // Nilai default energi
         this.coins = 0; // Nilai default koin
     }
 

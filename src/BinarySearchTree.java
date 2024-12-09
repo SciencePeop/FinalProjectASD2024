@@ -78,4 +78,22 @@ public class BinarySearchTree {
 
         return searchRec(root.right, value);
     }
+
+    // Metode untuk mencari kedalaman maksimal
+    int maxDepth() {
+        return maxDepthRec(root);
+    }
+
+    private int maxDepthRec(Node node) {
+        if (node == null) {
+            return 0; // Base case: empty tree has depth 0
+        }
+
+        // Recursively find the depth of left and right subtrees
+        int leftDepth = maxDepthRec(node.left);
+        int rightDepth = maxDepthRec(node.right);
+
+        // Return the larger depth plus 1 for the current node
+        return Math.max(leftDepth, rightDepth) + 1;
+    }
 }
