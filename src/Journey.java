@@ -27,6 +27,25 @@ public class Journey {
             System.out.println("\nYou choose " + currentMilestone.getName());
             potter.printStatus();
 
+            //Update Potter di currentMilestone
+            if (!currentMilestone.isCompleted()){
+                potter.addCoins(currentMilestone.getCoinReward());
+                potter.increaseEnergy(currentMilestone.getEnergyRestored());
+                currentMilestone.setCompleted();
+            }
+
+            //Hapus mainQuestVisited jika mainQuest
+            if (currentMilestone.getType() == "Main Quest"){
+                String currentMilestoneId = currentMilestone.getId();
+                switch (currentMilestoneId){
+                    case "mQ1" -> mainQuestVisited[0] = null;
+                    case "mQ2" -> mainQuestVisited[1] = null;
+                    case "mQ3" -> mainQuestVisited[2] = null;
+                    case "mQ4" -> mainQuestVisited[3] = null;
+                    case "mQ5" -> mainQuestVisited[4] = null;
+                }
+            }
+
             //Kondisi jika tidak memiliki energi yang cukup untuk melanjutkan satupun quest yang ada
             if (potter.getEnergy() < getMinCostOfNextStep(currentMilestone)) {
                 System.out.println("Your energy is not enough to continue the journey. You lose.");
@@ -36,8 +55,7 @@ public class Journey {
             //Ambil teman dari currentMilestone
             optionMilestone = getFriendsOfMilestone(currentMilestone);
 
-
-            // Tampilkan opsi milestone
+            //Tampilkan opsi milestone
             System.out.println("Available paths:");
             for (int i = 0; i < optionMilestone.size(); i++) {
                 System.out.println(i+1 +". "+ optionMilestone.get(i).getId() + " : " + optionMilestone.get(i).getName());
@@ -52,19 +70,45 @@ public class Journey {
             // Ambil pilihan pengguna
             boolean validChoice = false;
             int choice = 1;
+            boolean allVisited = Arrays.stream(mainQuestVisited).allMatch(Objects::isNull);
+            Milestone candidate = new Milestone("","");
             while (!validChoice) {
                 System.out.print("Choose your next milestone: ");
                 choice = scanner.nextInt();
-
-                // Validasi pilihan
+                validChoice = true;
+                // Validasi pilihan tidak melewati batas
                 if (choice < 0 || choice > optionMilestone.size() + 1) {
                     System.out.println("Invalid choice. Please try again.");
+                    validChoice = false;
                     continue;
                 }
-                validChoice = true;
-            }
+                candidate = optionMilestone.get(choice-1);
+                // Validasi apakah final tersebut merupakan final yang sudah dipilih raja atau bukan
+                if (candidate.getType() == "Final"){
+                    if (!candidate.getName().equals(monster.getName())){
+                        System.out.println("This is not our destination, let's go back!");
+                        candidate = currentMilestone; // untuk membuat nextMilestone tetap di currentMilestone
+                        break;
+                    }
+                    // Validasi apakah layak melanjutkan ke final
+                    if (allVisited){
+                        System.out.println("You have collected all the God Weapons. " +
+                                "You are worthy to fight the Gatekeeper. " +
+                                "Defeat the Gatekeeper for the glory of Naradhista");
+                        validChoice = true;
+                    }else {
+                        System.out.println("You haven't gotten all the God Weapons yet");
+                        System.out.println("Find and get the following God Weapons :");
+                        for (int i = 0; i < mainQuestVisited.length; i++) {
+                            if (mainQuestVisited[i] != null) {
+                                System.out.println(mainQuestVisited[i]);
+                            }
+                        }
+                        validChoice = false;
+                    }
+                }
 
-            //Kondisi jika nextMilestone adalah finish
+            }
 
             //Kondisi jika menggunakan Pusaka
             if (choice == optionMilestone.size() + 1) {
@@ -72,23 +116,58 @@ public class Journey {
                 break;
             }
             // Perbarui milestone berikutnya
-            nextMilestone = optionMilestone.get(choice - 1);
+            nextMilestone = candidate;
 
-            // Update potter's energy dan milestone saat ini
+            // Update Potter's Energy ke nextMilestone
             potter.decreaseEnergy(currentMilestone.getEnergyCosts(nextMilestone));
-            potter.addCoins(currentMilestone.getCoinReward());
-            potter.increaseEnergy(currentMilestone.getEnergyRestored());
-            currentMilestone.setCompleted();
 
-            //Hapus jika mainQuest
-            for (int i = 0; i < mainQuestVisited.length; i++) {
-                if (mainQuestVisited[i].equals(currentMilestone.getId())) {
-                    mainQuestVisited[i] = null; // Ubah nilai menjadi null
-                    break; // Keluar dari loop setelah menemukan
+            // Update currentMilestone
+            currentMilestone = nextMilestone;
+        }
+    }
+
+    public void finalStage(){
+        System.out.println("You are in the final stage, there is no turning back.");
+        potter.printStatus();
+        int chance = potter.getEnergy()/monster.getRequiredEnergy();
+        int attempt = 0;
+        int pointOnFinalStage = 0;
+        // Cek apakah energi cukup untuk melawan Monster
+        if(chance == 0){
+            System.out.println("You're already exhausted. You lost before you fought.");
+            return;
+        }
+        while (true){
+            if(chance==0){
+                System.out.println("You are so dying. You failed to save the Naradhista.");
+                return;
+            }
+            if (chance == 1){
+                System.out.println("Only one chance to beat" + monster.getName()+". Use Gandiva Arrow and shoots at vital onject");
+            }else {
+                switch (attempt){
+                    case 0 -> System.out.println("Run with Hurricane Shoes and attack the vital object");
+                    case 1 -> System.out.println("You are still saved by Taranis Shield. Attack again!");
+                    case 2 -> System.out.println("Phoenix Mantle allows you to absorb attacks. Try again.");
+                    case 3 -> System.out.println("The spirit of the warriors comes through Helm of Kuuga. Attack vital objects more accurately.");
                 }
-                currentMilestone = nextMilestone;
+            }
+            //Tebak angka yang menjadi root dari monster
+            int target = scanner.nextInt();
+            int pointAccepted = monster.attack(target);
+            if (pointOnFinalStage<pointAccepted){pointOnFinalStage=pointAccepted;}
+
+            //Update energy
+            chance--;
+            attempt++;
+            potter.decreaseEnergy(monster.getRequiredEnergy());
+
+            //Kondisi menang
+            if (pointOnFinalStage == monster.getValue()){
+                System.out.println(monster.getName()+" has been defeated. You are the hero of the Naradhista Kingdom");
             }
         }
+
     }
 
     public static List<Milestone> getFriendsOfMilestone(Milestone currentMilestone) {
@@ -153,7 +232,6 @@ public class Journey {
         start3.addConnection(mQ5, 13);
         start3.addConnection(sQ9, 8);
 
-        mQ1.addConnection(start1, 10);
         mQ1.addConnection(sQ1, 8);
         mQ1.addConnection(mQ2, 17);
 
@@ -175,8 +253,6 @@ public class Journey {
         mQ4.addConnection(sQ12, 10);
         mQ4.addConnection(f3, 17);
 
-        mQ5.addConnection(start2, 20);
-        mQ5.addConnection(start3, 13);
         mQ5.addConnection(sQ3, 4);
         mQ5.addConnection(sQ4, 14);
         mQ5.addConnection(sQ9, 10);
@@ -188,11 +264,8 @@ public class Journey {
         sQ1.addConnection(sQ11, 10);
         sQ1.addConnection(sQ15, 14);
 
-        sQ2.addConnection(start1, 17);
-        sQ2.addConnection(start2, 8);
         sQ2.addConnection(mQ2, 12);
 
-        sQ3.addConnection(start2, 14);
         sQ3.addConnection(mQ2, 8);
         sQ3.addConnection(mQ5, 4);
         sQ3.addConnection(sQ5, 20);
@@ -217,11 +290,9 @@ public class Journey {
         sQ7.addConnection(f2, 13);
         sQ7.addConnection(f3, 15);
 
-        sQ8.addConnection(start1, 15);
         sQ8.addConnection(sQ1, 20);
         sQ8.addConnection(sQ15, 8);
 
-        sQ9.addConnection(start3, 8);
         sQ9.addConnection(mQ5, 10);
         sQ9.addConnection(sQ13, 12);
 
