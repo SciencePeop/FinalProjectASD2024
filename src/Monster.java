@@ -2,7 +2,7 @@ public class Monster {
     private String name;
     private int requiredEnergy; // Energy yang dibutuhkan untuk mengalahkan monster
     private BinarySearchTree bst;
-    private int value; // Nilai monster
+    private int value = 60; // Nilai monster
     private String descripton;
 
     public Monster() {
@@ -34,4 +34,12 @@ public class Monster {
 
     //Mengisi deskripsi monster
     public void setDescripton(String descripton) {this.descripton = descripton;}
+
+    public int attack(int target){
+        int totalLevel = bst.maxDepth();
+        int targetLevel = bst.findDepth(target);
+        int pointPerLevel = this.value/totalLevel;
+        int pointAccepted = (totalLevel-targetLevel)*pointPerLevel;
+        return pointAccepted;
+    }
 }
