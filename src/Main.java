@@ -1,7 +1,22 @@
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.Random;
+import java.util.ArrayList;
+import java.util.Scanner;
+import javax.sound.sampled.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Main {
     public static void main(String[] args) {
+        // Mulai thread untuk memutar musik
+        Thread musicThread = new Thread(() -> playMusic("Backsound.wav"));
+        musicThread.setDaemon(true); // Membuat thread berhenti ketika program utama selesai
+        musicThread.start();
+
         Scanner scanner = new Scanner(System.in);
         Potter potter = new Potter();
         Monster monster = new Monster();
@@ -16,9 +31,49 @@ public class Main {
         System.out.println("You who are currently a potter have the blood and soul of a ksatriya. " +
                 "\nYou used to be an honorable ksatriya, but your memory was lost due to an accident. " +
                 "\nCurrently, only you as a potter can be relied on to defeat the demon gatekeeper.");
+
         System.out.println("What's your name?");
         String namePotter = scanner.nextLine();
         potter.setName(namePotter);
+
+        System.out.println("Halloo, Here is your travel map! Let's complete the missions and defeat the monsters!");
+        System.out.print("                   SQ15--------10-------SQ11\n");
+        System.out.print("                   /\\                   /\\   \\\n");
+        System.out.print("                  8  \\                 /  \\    15\n");
+        System.out.print("                 /    \\               /    \\      \\\n");
+        System.out.print("                SQ8    \\             /      \\       \\\n");
+        System.out.print("               /   \\    \\           /        9         F1\n");
+        System.out.print("              /      \\   14        10         \\           \\\n");
+        System.out.print("             /         \\   \\      /            \\             8\n");
+        System.out.print("           15           20  \\    /              \\               \\\n");
+        System.out.print("          /               \\  \\  /              M3--------7--------SQ6\n");
+        System.out.print("         /                  \\ \\/              /\\  \\                  \\\n");
+        System.out.print("       S1-----10-----M1---8--SQ1            /   \\   \\                   \\\n");
+        System.out.print("      /   \\             \\      \\          /      \\    10                  12\n");
+        System.out.print("     /     \\              \\     \\       13        \\     \\                    \\\n");
+        System.out.print("    0       17              17   10    /           \\      \\                     \\\n");
+        System.out.print("   /         \\                \\   \\   /             \\       SQ14-------16--------F2\n");
+        System.out.print("  /           \\                 \\  \\/                6          \\               /\n");
+        System.out.print("Start        SQ2--------12--------M2                  \\           \\            /\n");
+        System.out.print("  \\   \\       /                   /                    \\            16        13\n");
+        System.out.print("   \\    0    8                   8                      \\              \\     /\n");
+        System.out.print("    \\     \\ /                   /                        \\               \\  /\n");
+        System.out.print("     0      S2-------14-------SQ3------------20------------SQ5-------------SQ7\n");
+        System.out.print("      \\       \\            /                              /                /   \\\n");
+        System.out.print("       \\        20       4                              8                10      15\n");
+        System.out.print("        \\          \\   /                               /                /           \\\n");
+        System.out.print("         S3----13----M5--------------14-------------SQ4-------14-------M4------17-----F3\n");
+        System.out.print("            \\        / \\                           /  \\                /  \\          /\n");
+        System.out.print("             \\      /   \\                        /     \\              /    10      9\n");
+        System.out.print("              8    10    \\                     /        \\            /        \\  /\n");
+        System.out.print("               \\   /      \\                  /           \\          /         SQ12\n");
+        System.out.print("                \\ /       13               15             14       8        /\n");
+        System.out.print("                 SQ9       \\             /                 \\      /       /\n");
+        System.out.print("                      \\     \\          /                    \\    /     15\n");
+        System.out.print("                         12   \\      /                       \\  /    /\n");
+        System.out.print("                            \\  \\   /                          \\/   /\n");
+        System.out.print("                               SQ13 -----------16----------- SQ10/\n");
+
 
         System.out.println("Are you ready to play the Quest Navigation game? (Yes/No): ");
         String ready = scanner.nextLine();
@@ -53,7 +108,6 @@ public class Main {
 
         System.out.println("You meet the King to offer help and the King feels very helpful." +
                 "\nThe King told you that you must defeat " + monster.getName()+
-                "\n"+monster.getDescripton()+
                 "The King tells you that before fighting the gatekeeper you must equip yourself with the weapons of the Gods."+
                 "\nThe King tells you that there are 3 castles that hold a relic to get to the Demon's Gatekeeper place quickly."+
                 "\nEach castle gives a different effect."+
@@ -73,5 +127,24 @@ public class Main {
         //Mulai permainan
         journey.startGame(startId);
         journey.finalStage();
+    }
+
+    private static void playMusic(String fileName) {
+        try {
+            File musicFile = new File(fileName);
+            if (!musicFile.exists()) {
+                System.out.println("Music file not found: " + fileName);
+                return;
+            }
+
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(musicFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+            clip.start();
+
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            System.out.println("Error playing music: " + e.getMessage());
+        }
     }
 }
