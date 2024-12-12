@@ -20,13 +20,15 @@ public class Journey {
                 .filter(milestone -> milestone.getId().equals(startId))
                 .findFirst().orElse(null);
         Milestone nextMilestone = null;
-        List<Milestone> optionMilestone;
+        List<Milestone> milestoneOptions;
         String[] mainQuestVisited = {"mQ1", "mQ2", "mQ3", "mQ4", "mQ5"};
 
         while (true) {
+            System.out.println("Chekpoint 1");
             System.out.println("\nYou choose " + currentMilestone.getName());
             potter.printStatus();
 
+            System.out.println("Chekpoint 2");
             //Update Potter di currentMilestone
             if (!currentMilestone.isCompleted()){
                 potter.addCoins(currentMilestone.getCoinReward());
@@ -34,96 +36,152 @@ public class Journey {
                 currentMilestone.setCompleted();
             }
 
+            System.out.println("Chekpoint 3");
             //Hapus mainQuestVisited jika mainQuest
-            if (currentMilestone.getType() == "Main Quest"){
-                String currentMilestoneId = currentMilestone.getId();
-                switch (currentMilestoneId){
-                    case "mQ1" -> mainQuestVisited[0] = null;
-                    case "mQ2" -> mainQuestVisited[1] = null;
-                    case "mQ3" -> mainQuestVisited[2] = null;
-                    case "mQ4" -> mainQuestVisited[3] = null;
-                    case "mQ5" -> mainQuestVisited[4] = null;
-                }
-            }
+            mainQuestCompleted(currentMilestone, mainQuestVisited);
 
+            System.out.println("Chekpoint 4");
             //Kondisi jika tidak memiliki energi yang cukup untuk melanjutkan satupun quest yang ada
-            if (potter.getEnergy() < getMinCostOfNextStep(currentMilestone)) {
-                System.out.println("Your energy is not enough to continue the journey. You lose.");
-                break;
-            }
+            boolean haveEnoughEnergy = haveEnoughEnergy(potter, currentMilestone);
+            if (!haveEnoughEnergy) break;
 
+            System.out.println("Chekpoint 5");
             //Ambil teman dari currentMilestone
-            optionMilestone = getFriendsOfMilestone(currentMilestone);
+            milestoneOptions = getFriendsOfMilestone(currentMilestone);
 
+            System.out.println("Chekpoint 6");
             //Tampilkan opsi milestone
-            System.out.println("Available paths:");
-            for (int i = 0; i < optionMilestone.size(); i++) {
-                System.out.println(i+1 +". "+ optionMilestone.get(i).getId() + " : " + optionMilestone.get(i).getName());
-                System.out.println(optionMilestone.get(i).getDescription());
-                System.out.println("Cost : " + optionMilestone.get(i).getEnergyCosts(currentMilestone)
-                        + " \tCoins : "+optionMilestone.get(i).getCoinReward()
-                        +" \tEnergy : "+ optionMilestone.get(i).getEnergyRestored());
-            }
-            System.out.println(optionMilestone.size() + 1 + ". Use Pusaka");
-            System.out.println("Cost : " + potter.getEnergy() * 0.6);
+            displayMilestoneOption(potter, currentMilestone, milestoneOptions);
 
+            System.out.println("Chekpoint 7");
             // Ambil pilihan pengguna
             boolean validChoice = false;
+            boolean usePusaka = false;
             int choice = 1;
             boolean allVisited = Arrays.stream(mainQuestVisited).allMatch(Objects::isNull);
+            boolean correctFinal = false;
+            boolean isAllVisited = false;
             Milestone candidate = new Milestone("","");
-            while (!validChoice) {
+
+            System.out.println("Chekpoint 8");
+            while (true) {
                 System.out.print("Choose your next milestone: ");
                 choice = scanner.nextInt();
-                validChoice = true;
+
+                System.out.println("Chekpoint a");
                 // Validasi pilihan tidak melewati batas
-                if (choice < 0 || choice > optionMilestone.size() + 1) {
-                    System.out.println("Invalid choice. Please try again.");
-                    validChoice = false;
-                    continue;
-                }
-                candidate = optionMilestone.get(choice-1);
-                // Validasi apakah final tersebut merupakan final yang sudah dipilih raja atau bukan
-                if (candidate.getType() == "Final"){
-                    if (!candidate.getName().equals(monster.getName())){
-                        System.out.println("This is not our destination, let's go back!");
-                        candidate = currentMilestone; // untuk membuat nextMilestone tetap di currentMilestone
-                        break;
-                    }
-                    // Validasi apakah layak melanjutkan ke final
-                    if (allVisited){
-                        System.out.println("You have collected all the God Weapons. " +
-                                "You are worthy to fight the Gatekeeper. " +
-                                "Defeat the Gatekeeper for the glory of Naradhista");
-                        validChoice = true;
-                    }else {
-                        System.out.println("You haven't gotten all the God Weapons yet");
-                        System.out.println("Find and get the following God Weapons :");
-                        for (int i = 0; i < mainQuestVisited.length; i++) {
-                            if (mainQuestVisited[i] != null) {
-                                System.out.println(mainQuestVisited[i]);
-                            }
-                        }
-                        validChoice = false;
-                    }
-                }
+                validChoice = isValid(choice, milestoneOptions);
+                if (!validChoice) continue;
 
-            }
+                System.out.println("Chekpoint b");
+                // Kondisi menggunakan pusaka
+                usePusaka = usePusaka(choice, milestoneOptions);
+                if (usePusaka) break;
 
-            //Kondisi jika menggunakan Pusaka
-            if (choice == optionMilestone.size() + 1) {
-                System.out.println("Using Pusaka");
+                System.out.println("Chekpoint c");
+                candidate = milestoneOptions.get(choice-1);
+
+                System.out.println("Chekpoint d");
+                if (Objects.equals(candidate.getType(), "Final")){
+                    correctFinal = correctFinal(candidate, currentMilestone, monster);
+                    isAllVisited = isAllVisited(allVisited, mainQuestVisited);
+                    if (!correctFinal || !isAllVisited) continue;
+                    break;
+                }
                 break;
             }
+            if (correctFinal && isAllVisited) break;
+            if (usePusaka) break;
+
+            System.out.println("Chekpoint e");
             // Perbarui milestone berikutnya
             nextMilestone = candidate;
 
+            System.out.println("Chekpoint f");
             // Update Potter's Energy ke nextMilestone
             potter.decreaseEnergy(currentMilestone.getEnergyCosts(nextMilestone));
 
+            System.out.println("Chekpoint g");
             // Update currentMilestone
             currentMilestone = nextMilestone;
         }
+        System.out.println("Finish");
+    }
+
+    private static void mainQuestCompleted(Milestone currentMilestone, String[] mainQuestVisited){
+        if (Objects.equals(currentMilestone.getType(), "Main Quest")){
+            String currentMilestoneId = currentMilestone.getId();
+            switch (currentMilestoneId){
+                case "mQ1" -> mainQuestVisited[0] = null;
+                case "mQ2" -> mainQuestVisited[1] = null;
+                case "mQ3" -> mainQuestVisited[2] = null;
+                case "mQ4" -> mainQuestVisited[3] = null;
+                case "mQ5" -> mainQuestVisited[4] = null;
+            }
+        }
+    }
+
+    private static boolean haveEnoughEnergy(Potter potter, Milestone currentMilestone){
+        if (potter.getEnergy() < getMinCostOfNextStep(currentMilestone)) {
+            System.out.println("Your energy is not enough to continue the journey. You lose.");
+            return false;
+        }
+        return true;
+    }
+
+    private static void displayMilestoneOption(Potter potter, Milestone currentMilestone, List<Milestone> optionMilestone){
+        System.out.println("Available paths:");
+        for (int i = 0; i < optionMilestone.size(); i++) {
+            System.out.println(i+1 +". "+ optionMilestone.get(i).getId() + " : " + optionMilestone.get(i).getName());
+            System.out.println(optionMilestone.get(i).getDescription());
+            System.out.println("Cost : " + optionMilestone.get(i).getEnergyCosts(currentMilestone)
+                    + " \tCoins : "+optionMilestone.get(i).getCoinReward()
+                    +" \tEnergy : "+ optionMilestone.get(i).getEnergyRestored());
+        }
+        System.out.println(optionMilestone.size() + 1 + ". Use Pusaka");
+        System.out.println("Cost : " + potter.getEnergy() * 0.6);
+    }
+
+    private static boolean isValid(int choice, List<Milestone> optionMilestone){
+        if (choice < 0 || choice > optionMilestone.size() + 1) {
+            System.out.println("Invalid choice. Please try again.");
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean usePusaka(int choice, List<Milestone> optionMilestone){
+        if (choice == optionMilestone.size() + 1) {
+            System.out.println("Using Pusaka");
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean correctFinal(Milestone candidate, Milestone currentMilestone, Monster monster){
+        if (!candidate.getName().equals(monster.getName())){
+            System.out.println("This is not our destination, let's go back!");
+            candidate = currentMilestone; // untuk membuat nextMilestone tetap di currentMilestone
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isAllVisited(boolean allVisited, String[] mainQuestVisited){
+        if (allVisited){
+            System.out.println("You have collected all the God Weapons. " +
+                    "You are worthy to fight the Gatekeeper. " +
+                    "Defeat the Gatekeeper for the glory of Naradhista");
+            return true;
+        }
+        System.out.println("You haven't gotten all the God Weapons yet");
+        System.out.println("Find and get the following God Weapons :");
+        for (int i = 0; i < mainQuestVisited.length; i++) {
+            if (mainQuestVisited[i] != null) {
+                System.out.println(mainQuestVisited[i]);
+            }
+        }
+        return false;
     }
 
     public void finalStage(){
@@ -170,14 +228,14 @@ public class Journey {
 
     }
 
-    public static List<Milestone> getFriendsOfMilestone(Milestone currentMilestone) {
+    private static List<Milestone> getFriendsOfMilestone(Milestone currentMilestone) {
         if (currentMilestone == null || currentMilestone.getConnectedMilestones() == null) {
             return new ArrayList<>(); // Mengembalikan list kosong jika milestone atau koneksinya null
         }
         return new ArrayList<>(currentMilestone.getConnectedMilestones().keySet());
     }
 
-    public static int getMinCostOfNextStep(Milestone currentMilestone) {
+    private static int getMinCostOfNextStep(Milestone currentMilestone) {
         ArrayList<Integer> costs = new ArrayList<>(currentMilestone.getConnectedMilestones().values());
         int minimumCost = Collections.min(costs);
         return minimumCost;
@@ -355,4 +413,6 @@ public class Journey {
 
         return milestoneList;
     }
+
+
 }

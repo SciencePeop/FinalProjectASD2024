@@ -72,7 +72,6 @@ public class Main {
 
         //Mulai permainan
         journey.startGame(startId);
-
-
+        journey.finalStage();
     }
 }
